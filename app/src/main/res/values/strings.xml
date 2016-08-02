@@ -3,4 +3,5 @@
     <string name="hint_username_field">User Name</string>
     <string name="hint_password_field">Password</string>
     <string name="button_connect_text">Connect</string>
+    <string name="map_api_key">AIzaSyCcD6hJuoquPQpbNmtkdci0JkYvgBo6APE</string>
 </resources>

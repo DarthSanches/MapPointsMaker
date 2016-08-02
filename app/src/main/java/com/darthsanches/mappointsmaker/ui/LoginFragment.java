@@ -1,5 +1,8 @@
 package com.darthsanches.mappointsmaker.ui;
 
+import android.app.ActivityManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,6 +13,7 @@ import android.widget.EditText;
 
 import com.darthsanches.mappointsmaker.App;
 import com.darthsanches.mappointsmaker.R;
+import com.darthsanches.mappointsmaker.socket.SocketService;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -48,6 +52,20 @@ public class LoginFragment extends Fragment {
 
     @OnClick(R.id.button_connect)
     public void onConnectClick(){
-        ((App) getActivity().getApplicationContext()).bindService();
+        //((App) getActivity().getApplicationContext()).bindService();
+        if(!isMyServiceRunning(SocketService.class)) {
+            getActivity().startService(new Intent(getActivity(), SocketService.class));
+        }
+        getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.placeholder, new MapFragment()).commit();
+    }
+
+    public boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getActivity().getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
