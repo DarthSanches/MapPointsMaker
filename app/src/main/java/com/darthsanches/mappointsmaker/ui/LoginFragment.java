@@ -52,10 +52,10 @@ public class LoginFragment extends Fragment {
 
     @OnClick(R.id.button_connect)
     public void onConnectClick(){
-        //((App) getActivity().getApplicationContext()).bindService();
-        if(!isMyServiceRunning(SocketService.class)) {
-            getActivity().startService(new Intent(getActivity(), SocketService.class));
-        }
+        ((App) getActivity().getApplicationContext()).bindService();
+//        if(!isMyServiceRunning(SocketService.class)) {
+//            getActivity().startService(new Intent(getActivity(), SocketService.class));
+//        }
         getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.placeholder, new MapFragment()).commit();
     }
 

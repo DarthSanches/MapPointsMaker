@@ -2,6 +2,7 @@ package com.darthsanches.mappointsmaker.di;
 
 
 import com.darthsanches.mappointsmaker.App;
+import com.darthsanches.mappointsmaker.socket.SocketService;
 
 import javax.inject.Singleton;
 
@@ -13,6 +14,8 @@ import dagger.Component;
 @Singleton
 @Component(modules = {AppModule.class, ApiModule.class})
 public interface AppComponent {
+
+    void inject(SocketService socketService);
 
     final class Initializer {
         public static AppComponent init(App app) {
