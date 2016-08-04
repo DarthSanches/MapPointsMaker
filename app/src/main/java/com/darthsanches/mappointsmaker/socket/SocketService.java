@@ -8,16 +8,19 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.darthsanches.mappointsmaker.App;
+import com.darthsanches.mappointsmaker.bus.PointsCommingEvent;
+import com.darthsanches.mappointsmaker.model.Point;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.gson.Gson;
 import com.squareup.otto.Bus;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -27,15 +30,11 @@ import okhttp3.ws.WebSocket;
 import okhttp3.ws.WebSocketCall;
 import okhttp3.ws.WebSocketListener;
 import okio.Buffer;
-import okio.BufferedSink;
 
 /**
  * Created by alexandroid on 2.08.16.
  */
 public class SocketService extends Service implements WebSocketListener, OnMapReadyCallback {
-
-    private WebSocket webSocket;
-    private IBinder binder;
 
     @Inject
     @Named("SocketHttpClient")
@@ -44,6 +43,10 @@ public class SocketService extends Service implements WebSocketListener, OnMapRe
     Bus bus;
     @Inject
     Handler handler;
+
+    private WebSocket webSocket;
+    private IBinder binder;
+    private Gson gson;
 
     private String username = "a";
     private String password = "a";
@@ -65,6 +68,7 @@ public class SocketService extends Service implements WebSocketListener, OnMapRe
         App.component(this).inject(this);
         createSocketCall().enqueue(this);
         bus.register(this);
+        gson = new Gson();
     }
 
 /*
@@ -115,7 +119,7 @@ public class SocketService extends Service implements WebSocketListener, OnMapRe
 
     @Override
     public void onFailure(IOException e, Response response) {
-        this.webSocket = null;//TODO backoff reconnect
+        this.webSocket = null;
         handler.postDelayed(() -> createSocketCall().enqueue(SocketService.this), 1000);
         try {
             if (response != null) {
@@ -129,7 +133,8 @@ public class SocketService extends Service implements WebSocketListener, OnMapRe
 
     @Override
     public void onMessage(ResponseBody message) throws IOException {
-        Log.i(getClass().getName(), message.string());
+        Point[] points = gson.fromJson(message.string(), Point[].class);
+        bus.post(new PointsCommingEvent(Arrays.asList(points)));
     }
 
 

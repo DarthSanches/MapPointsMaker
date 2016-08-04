@@ -3,6 +3,7 @@ package com.darthsanches.mappointsmaker.di;
 
 import com.darthsanches.mappointsmaker.App;
 import com.darthsanches.mappointsmaker.socket.SocketService;
+import com.darthsanches.mappointsmaker.ui.MapFragment;
 
 import javax.inject.Singleton;
 
@@ -16,6 +17,9 @@ import dagger.Component;
 public interface AppComponent {
 
     void inject(SocketService socketService);
+
+    void inject(MapFragment mapFragment);
+
 
     final class Initializer {
         public static AppComponent init(App app) {
