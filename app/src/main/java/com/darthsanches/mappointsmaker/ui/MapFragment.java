@@ -8,8 +8,11 @@ import android.view.ViewGroup;
 
 import com.darthsanches.mappointsmaker.App;
 import com.darthsanches.mappointsmaker.R;
+import com.darthsanches.mappointsmaker.bus.LocationChangedEvent;
 import com.darthsanches.mappointsmaker.bus.PointsCommingEvent;
 import com.darthsanches.mappointsmaker.model.Point;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -25,10 +28,13 @@ import javax.inject.Inject;
  */
 public class MapFragment extends SupportMapFragment implements OnMapReadyCallback{
 
+    private static float ZOOM_LEVEL = 9.0f;
+
     @Inject
     Bus bus;
 
     private GoogleMap map;
+    private LatLng lastLocation;
 
     @Override
     public void onCreate(Bundle bundle) {
@@ -72,8 +78,24 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     }
 
+    @Subscribe
+    public void onLocationChanged(LocationChangedEvent event){
+        lastLocation = new LatLng(event.getLocation().getLatitude(),event.getLocation().getLongitude());
+        if (map != null){
+            moveCamera();
+        }
+
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
+        moveCamera();
+    }
+
+    private void moveCamera(){
+        if(lastLocation != null) {
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(lastLocation, ZOOM_LEVEL));
+        }
     }
 }
