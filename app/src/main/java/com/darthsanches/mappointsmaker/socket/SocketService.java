@@ -1,32 +1,33 @@
 package com.darthsanches.mappointsmaker.socket;
 
-import android.Manifest;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Binder;
-import android.os.Bundle;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.darthsanches.mappointsmaker.App;
+import com.darthsanches.mappointsmaker.R;
 import com.darthsanches.mappointsmaker.bus.LocationChangedEvent;
+import com.darthsanches.mappointsmaker.bus.LoginEvent;
+import com.darthsanches.mappointsmaker.bus.LoginFailureEvent;
 import com.darthsanches.mappointsmaker.bus.PointsCommingEvent;
 import com.darthsanches.mappointsmaker.model.LocationRequest;
 import com.darthsanches.mappointsmaker.model.Point;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
+import com.darthsanches.mappointsmaker.ui.MainActivity;
 import com.google.gson.Gson;
 import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 import java.io.IOException;
-import java.security.PublicKey;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import javax.inject.Inject;
@@ -47,6 +48,8 @@ import okio.Buffer;
  */
 public class SocketService extends Service implements WebSocketListener {
 
+    private static final int ONGOING_NOTIFICATION_ID = 1;
+
     @Inject
     @Named("SocketHttpClient")
     OkHttpClient okHttp;
@@ -59,8 +62,8 @@ public class SocketService extends Service implements WebSocketListener {
     private IBinder binder;
     private Gson gson;
 
-    private String username = "a";
-    private String password = "a";
+    private String username;
+    private String password;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -77,36 +80,27 @@ public class SocketService extends Service implements WebSocketListener {
         super.onCreate();
         Log.d(getClass().getName(), "SOCKET CREATE");
         App.component(this).inject(this);
-        createSocketCall().enqueue(this);
         bus.register(this);
         gson = new Gson();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        //locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
     }
 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        username = intent.getStringExtra("username");
+        password = intent.getStringExtra("password");
+        createSocketCall().enqueue(this);
 
+
+        startForeground(ONGOING_NOTIFICATION_ID, getNotification());
         return START_STICKY;
     }
 
-    public void sendLocation(Location location){
-        if(webSocket != null && location != null){
+    public void sendLocation(Location location) {
+        if (webSocket != null && location != null) {
             try {
-                LocationRequest request= new LocationRequest(location.getLatitude(), location.getLongitude());
-                webSocket.sendMessage(RequestBody.create(WebSocket.TEXT,gson.toJson(request)));
+                LocationRequest request = new LocationRequest(location.getLatitude(), location.getLongitude());
+                webSocket.sendMessage(RequestBody.create(WebSocket.TEXT, gson.toJson(request)));
                 Log.i(getClass().getName(), "send: " + location.getLongitude() + ", " + location.getLatitude());
                 bus.post(new LocationChangedEvent(location));
             } catch (IOException e) {
@@ -119,6 +113,7 @@ public class SocketService extends Service implements WebSocketListener {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        bus.unregister(this);
         Thread thread = new Thread(() -> {
             try {
                 if (webSocket != null) {
@@ -137,33 +132,23 @@ public class SocketService extends Service implements WebSocketListener {
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
         this.webSocket = webSocket;
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
-        }else {
-            sendLocation(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
-        }
+        bus.post(new LoginEvent());
     }
 
     @Override
     public void onFailure(IOException e, Response response) {
         this.webSocket = null;
-        response.code();
-        handler.postDelayed(() -> createSocketCall().enqueue(SocketService.this), 1000);
-        try {
-            if (response != null) {
+        if (response.code() == 403) {
+            stopSelf();
+            bus.post(new LoginFailureEvent());
+        } else {
+            handler.postDelayed(() -> createSocketCall().enqueue(SocketService.this), 1000);
+            try {
                 Log.w(getClass().getName(), String.format("FAILURE RESPONSE:\n %s", response.body() != null ? response.body().string() : response.body()));
+            } catch (IOException e1) {
+                Log.w("", "FAILURE WHEN GETTING RESPONSE BODY", e);
             }
-        } catch (IOException e1) {
-            Log.w("", "FAILURE WHEN GETTING RESPONSE BODY", e);
         }
-
     }
 
     @Override
@@ -188,21 +173,35 @@ public class SocketService extends Service implements WebSocketListener {
         return WebSocketCall.create(okHttp, new Request.Builder().url(url).build());
     }
 
-    LocationManager locationManager;
+    private Notification getNotification(){
+        Notification notification;
 
-    // Define a listener that responds to location updates
-    LocationListener locationListener = new LocationListener() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-        public void onLocationChanged(Location location) {
-            // Called when a new location is found by the network location provider.
-            sendLocation(location);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            notification = new Notification(R.drawable.common_ic_googleplayservices, getText(R.string.toolbar_title_login),
+                    System.currentTimeMillis());
+
+            try {
+                Method deprecatedMethod = notification.getClass().getMethod("setLatestEventInfo", Context.class, CharSequence.class, CharSequence.class, PendingIntent.class);
+                deprecatedMethod.invoke(this, getText(R.string.login_failed), getResources().getString(R.string.notification_text), pendingIntent);
+            } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException
+                    | InvocationTargetException e) {
+                Log.w(getClass().getName(), "Method not found", e);
+            }
+        } else {
+            Notification.Builder builder = new Notification.Builder(this)
+                    .setContentIntent(pendingIntent)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle(getResources().getString(R.string.notification_text));
+            notification = builder.build();
         }
+        return notification;
+    }
 
-        public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-        public void onProviderEnabled(String provider) {}
-
-        public void onProviderDisabled(String provider) {}
-    };
-
+    @Subscribe
+    public void onLocationChange(LocationChangedEvent event){
+        sendLocation(event.getLocation());
+    }
 }
