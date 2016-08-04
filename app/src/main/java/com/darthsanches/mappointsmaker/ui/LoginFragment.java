@@ -1,7 +1,5 @@
 package com.darthsanches.mappointsmaker.ui;
 
-import android.app.ActivityManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -81,13 +79,12 @@ public class LoginFragment extends Fragment {
 
     @OnClick(R.id.button_connect)
     public void onConnectClick() {
-        if (!((MainActivity)getActivity()).isMyServiceRunning(SocketService.class)) {
+        if (!((MainActivity) getActivity()).isMyServiceRunning(SocketService.class)) {
             Intent intent = new Intent(getActivity(), SocketService.class);
             intent.putExtra("username", userNameField.getText().toString());
             intent.putExtra("password", passwordField.getText().toString());
             getActivity().startService(intent);
         }
-        ((MainActivity) getActivity()).openMapFragment();
     }
 
     @Subscribe

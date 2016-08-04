@@ -1,29 +1,22 @@
 package com.darthsanches.mappointsmaker.helper;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.PermissionChecker;
 
 import com.darthsanches.mappointsmaker.App;
 import com.darthsanches.mappointsmaker.bus.LocationChangedEvent;
-import com.darthsanches.mappointsmaker.bus.LoginEvent;
 import com.darthsanches.mappointsmaker.bus.RequestPermissionEvent;
-import com.darthsanches.mappointsmaker.ui.MainActivity;
 import com.squareup.otto.Bus;
-import com.squareup.otto.Subscribe;
 
 import java.util.List;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /**
  * Created by alexandroid on 04.08.2016.

@@ -1,20 +1,14 @@
 package com.darthsanches.mappointsmaker;
 
 import android.app.Application;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
-import android.util.Log;
 
 import com.darthsanches.mappointsmaker.di.AppComponent;
-import com.darthsanches.mappointsmaker.socket.SocketService;
 
 /**
  * Created by alexandroid on 2.08.16.
  */
-public class App extends Application{
+public class App extends Application {
 
     private AppComponent component;
 

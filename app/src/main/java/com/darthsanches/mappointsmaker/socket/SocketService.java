@@ -50,6 +50,7 @@ import okio.Buffer;
 public class SocketService extends Service implements WebSocketListener {
 
     private static final int ONGOING_NOTIFICATION_ID = 1;
+    private static final String SOCKET_URL_QUERY_STRING = "ws://mini-mdt.wheely.com/?username=%s&password=%s";
 
     @Inject
     @Named("SocketHttpClient")
@@ -89,14 +90,13 @@ public class SocketService extends Service implements WebSocketListener {
         locationHelper = new LocationHelper(getApplicationContext());
     }
 
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         username = intent.getStringExtra("username");
         password = intent.getStringExtra("password");
         createSocketCall().enqueue(this);
 
-        //startForeground(ONGOING_NOTIFICATION_ID, getNotification());
+        startForeground(ONGOING_NOTIFICATION_ID, getNotification());
         return START_NOT_STICKY;
     }
 
@@ -136,7 +136,7 @@ public class SocketService extends Service implements WebSocketListener {
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
         this.webSocket = webSocket;
-        //bus.post(new LoginEvent());
+        bus.post(new LoginEvent());
         locationHelper.checkLastLocation();
     }
 
@@ -149,7 +149,7 @@ public class SocketService extends Service implements WebSocketListener {
         } else {
             handler.postDelayed(() -> createSocketCall().enqueue(SocketService.this), 1000);
             try {
-                if(response != null) {
+                if (response != null) {
                     Log.w(getClass().getName(), String.format("FAILURE RESPONSE:\n %s", response.body() != null ? response.body().string() : response.body()));
                 }
             } catch (IOException e1) {
@@ -178,11 +178,11 @@ public class SocketService extends Service implements WebSocketListener {
     }
 
     private WebSocketCall createSocketCall() {
-        String url = "ws://mini-mdt.wheely.com" + "/?username=" + username + "&password=" + password;
+        String url = String.format(SOCKET_URL_QUERY_STRING, username, password);
         return WebSocketCall.create(okHttp, new Request.Builder().url(url).build());
     }
 
-    private Notification getNotification(){
+    private Notification getNotification() {
         Notification notification;
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -210,7 +210,7 @@ public class SocketService extends Service implements WebSocketListener {
     }
 
     @Subscribe
-    public void onLocationChange(LocationChangedEvent event){
+    public void onLocationChange(LocationChangedEvent event) {
         sendLocation(event.getLocation());
     }
 }

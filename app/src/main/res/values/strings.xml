@@ -7,6 +7,7 @@
     <string name="toolbar_title_map">Map</string>
     <string name="login_failed">Login Failed!!!</string>
     <string name="notification_text">Socket Service Run</string>
+    <string name="quit_text">Disconnect</string>
 
     <string name="map_api_key">AIzaSyCcD6hJuoquPQpbNmtkdci0JkYvgBo6APE</string>
 </resources>

@@ -3,29 +3,16 @@ package com.darthsanches.mappointsmaker.ui;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
-import android.support.annotation.NonNull;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 
 import com.darthsanches.mappointsmaker.App;
 import com.darthsanches.mappointsmaker.R;
-import com.darthsanches.mappointsmaker.bus.LocationChangedEvent;
-import com.darthsanches.mappointsmaker.bus.LoginEvent;
 import com.darthsanches.mappointsmaker.bus.RequestPermissionEvent;
-import com.darthsanches.mappointsmaker.helper.LocationHelper;
 import com.darthsanches.mappointsmaker.socket.SocketService;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
-
-import java.security.Permission;
 
 import javax.inject.Inject;
 
