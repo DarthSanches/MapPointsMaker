@@ -42,6 +42,7 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         unbinder = ButterKnife.bind(this,view);
+        ((MainActivity)getActivity()).getSupportActionBar().setTitle(R.string.toolbar_title_login);
     }
 
     @Override
@@ -52,11 +53,11 @@ public class LoginFragment extends Fragment {
 
     @OnClick(R.id.button_connect)
     public void onConnectClick(){
+        if(!isMyServiceRunning(SocketService.class)) {
+            getActivity().startService(new Intent(getActivity(), SocketService.class));
+        }
         ((App) getActivity().getApplicationContext()).bindService();
-//        if(!isMyServiceRunning(SocketService.class)) {
-//            getActivity().startService(new Intent(getActivity(), SocketService.class));
-//        }
-        getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.placeholder, new MapFragment()).commit();
+        ((MainActivity)getActivity()).openMapFragment();
     }
 
     public boolean isMyServiceRunning(Class<?> serviceClass) {

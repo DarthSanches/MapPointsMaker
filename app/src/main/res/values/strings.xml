@@ -3,5 +3,8 @@
     <string name="hint_username_field">User Name</string>
     <string name="hint_password_field">Password</string>
     <string name="button_connect_text">Connect</string>
+    <string name="toolbar_title_login">Login</string>
+    <string name="toolbar_title_map">Map</string>
+
     <string name="map_api_key">AIzaSyCcD6hJuoquPQpbNmtkdci0JkYvgBo6APE</string>
 </resources>

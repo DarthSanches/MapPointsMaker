@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         if(savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.placeholder, new LoginFragment(), "login").commit();
+            openLoginFragment();
         }
 
     }
@@ -27,5 +27,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.d(getClass().getName(), "onMapReady");
+    }
+
+    public void openLoginFragment(){
+        getSupportFragmentManager().beginTransaction().replace(R.id.placeholder, new LoginFragment(), "login").commit();
+    }
+
+    public void openMapFragment(){
+        getSupportFragmentManager().beginTransaction().replace(R.id.placeholder, new MapFragment(), "map").commit();
     }
 }
