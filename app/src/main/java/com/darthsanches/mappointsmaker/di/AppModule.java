@@ -5,7 +5,9 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.darthsanches.mappointsmaker.App;
 import com.darthsanches.mappointsmaker.bus.AndroidBus;
+import com.darthsanches.mappointsmaker.helper.LocationHelper;
 import com.squareup.otto.Bus;
 
 import javax.inject.Singleton;

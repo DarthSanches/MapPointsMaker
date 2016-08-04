@@ -14,7 +14,7 @@ import com.darthsanches.mappointsmaker.socket.SocketService;
 /**
  * Created by alexandroid on 2.08.16.
  */
-public class App extends Application implements ServiceConnection {
+public class App extends Application{
 
     private AppComponent component;
 
@@ -26,27 +26,5 @@ public class App extends Application implements ServiceConnection {
 
     public static AppComponent component(Context context) {
         return ((App) context.getApplicationContext()).component;
-    }
-
-    @Override
-    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-        Log.d(getClass().getName(),"SocketService binded");
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName componentName) {
-        Log.d(getClass().getName(), "SocketService disconnected");
-    }
-
-    public void unbindService() {
-        try {
-            unbindService(this);
-        } catch (IllegalArgumentException e) {
-            Log.e(getClass().getName(), "ERROR UNBINDING SOCKET", e);
-        }
-    }
-
-    public void bindService() {
-        bindService(new Intent(this, SocketService.class), this, BIND_IMPORTANT | BIND_AUTO_CREATE);
     }
 }

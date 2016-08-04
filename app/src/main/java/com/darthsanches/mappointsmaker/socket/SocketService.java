@@ -18,6 +18,7 @@ import com.darthsanches.mappointsmaker.bus.LocationChangedEvent;
 import com.darthsanches.mappointsmaker.bus.LoginEvent;
 import com.darthsanches.mappointsmaker.bus.LoginFailureEvent;
 import com.darthsanches.mappointsmaker.bus.PointsCommingEvent;
+import com.darthsanches.mappointsmaker.helper.LocationHelper;
 import com.darthsanches.mappointsmaker.model.LocationRequest;
 import com.darthsanches.mappointsmaker.model.Point;
 import com.darthsanches.mappointsmaker.ui.MainActivity;
@@ -64,6 +65,7 @@ public class SocketService extends Service implements WebSocketListener {
 
     private String username;
     private String password;
+    private Location lastLocation;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -91,12 +93,12 @@ public class SocketService extends Service implements WebSocketListener {
         password = intent.getStringExtra("password");
         createSocketCall().enqueue(this);
 
-
         startForeground(ONGOING_NOTIFICATION_ID, getNotification());
-        return START_STICKY;
+        return START_REDELIVER_INTENT;
     }
 
     public void sendLocation(Location location) {
+        lastLocation = location;
         if (webSocket != null && location != null) {
             try {
                 LocationRequest request = new LocationRequest(location.getLatitude(), location.getLongitude());
@@ -138,7 +140,7 @@ public class SocketService extends Service implements WebSocketListener {
     @Override
     public void onFailure(IOException e, Response response) {
         this.webSocket = null;
-        if (response.code() == 403) {
+        if (response != null && response.code() == 403) {
             stopSelf();
             bus.post(new LoginFailureEvent());
         } else {
@@ -149,12 +151,14 @@ public class SocketService extends Service implements WebSocketListener {
                 Log.w("", "FAILURE WHEN GETTING RESPONSE BODY", e);
             }
         }
+
     }
 
     @Override
     public void onMessage(ResponseBody message) throws IOException {
         Point[] points = gson.fromJson(message.string(), Point[].class);
         bus.post(new PointsCommingEvent(Arrays.asList(points)));
+        Log.i(getClass().getName(), "onMessage");
     }
 
 
@@ -180,12 +184,12 @@ public class SocketService extends Service implements WebSocketListener {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-            notification = new Notification(R.drawable.common_ic_googleplayservices, getText(R.string.toolbar_title_login),
+            notification = new Notification(R.mipmap.ic_launcher, getText(R.string.notification_text),
                     System.currentTimeMillis());
 
             try {
                 Method deprecatedMethod = notification.getClass().getMethod("setLatestEventInfo", Context.class, CharSequence.class, CharSequence.class, PendingIntent.class);
-                deprecatedMethod.invoke(this, getText(R.string.login_failed), getResources().getString(R.string.notification_text), pendingIntent);
+                deprecatedMethod.invoke(this, getText(R.string.notification_text), getText(R.string.notification_text), pendingIntent);
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException
                     | InvocationTargetException e) {
                 Log.w(getClass().getName(), "Method not found", e);
@@ -194,7 +198,7 @@ public class SocketService extends Service implements WebSocketListener {
             Notification.Builder builder = new Notification.Builder(this)
                     .setContentIntent(pendingIntent)
                     .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContentTitle(getResources().getString(R.string.notification_text));
+                    .setContentTitle(getText(R.string.notification_text));
             notification = builder.build();
         }
         return notification;

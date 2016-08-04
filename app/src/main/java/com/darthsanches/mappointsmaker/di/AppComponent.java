@@ -2,8 +2,10 @@ package com.darthsanches.mappointsmaker.di;
 
 
 import com.darthsanches.mappointsmaker.App;
+import com.darthsanches.mappointsmaker.helper.LocationHelper;
 import com.darthsanches.mappointsmaker.socket.SocketService;
 import com.darthsanches.mappointsmaker.ui.LoginFragment;
+import com.darthsanches.mappointsmaker.ui.MainActivity;
 import com.darthsanches.mappointsmaker.ui.MapFragment;
 
 import javax.inject.Singleton;
@@ -23,6 +25,9 @@ public interface AppComponent {
 
     void inject(MapFragment mapFragment);
 
+    void inject(MainActivity mainActivity);
+
+    void inject(LocationHelper locationHelper);
 
     final class Initializer {
         public static AppComponent init(App app) {
