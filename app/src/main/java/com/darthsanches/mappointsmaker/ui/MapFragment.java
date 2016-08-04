@@ -28,7 +28,7 @@ import javax.inject.Inject;
  */
 public class MapFragment extends SupportMapFragment implements OnMapReadyCallback{
 
-    private static float ZOOM_LEVEL = 9.0f;
+    private static float ZOOM_LEVEL = 10.0f;
 
     @Inject
     Bus bus;
@@ -41,7 +41,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         super.onCreate(bundle);
         getMapAsync(this);
         App.component(getActivity()).inject(this);
-
     }
 
     @Override
@@ -84,7 +83,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         if (map != null){
             moveCamera();
         }
-
     }
 
     @Override

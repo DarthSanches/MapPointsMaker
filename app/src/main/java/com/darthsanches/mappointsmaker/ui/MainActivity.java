@@ -39,16 +39,12 @@ public class MainActivity extends AppCompatActivity {
     @Inject
     Bus bus;
 
-    LocationHelper locationHelper;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         App.component(this).inject(this);
-
-        locationHelper = new LocationHelper(this);
 
         if (savedInstanceState == null) {
             if (isMyServiceRunning(SocketService.class)) {
@@ -89,11 +85,6 @@ public class MainActivity extends AppCompatActivity {
                 PERMISSION_REQUEST_CODE);
     }
 
-    @Subscribe
-    public void onLogin(LoginEvent event) {
-        locationHelper.checkLastLocation();
-    }
-
     public boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -102,11 +93,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return false;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        locationHelper.init();
     }
 }

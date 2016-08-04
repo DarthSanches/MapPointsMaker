@@ -87,6 +87,7 @@ public class LoginFragment extends Fragment {
             intent.putExtra("password", passwordField.getText().toString());
             getActivity().startService(intent);
         }
+        ((MainActivity) getActivity()).openMapFragment();
     }
 
     @Subscribe

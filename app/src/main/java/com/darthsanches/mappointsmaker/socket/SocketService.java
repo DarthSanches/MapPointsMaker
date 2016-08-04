@@ -67,6 +67,8 @@ public class SocketService extends Service implements WebSocketListener {
     private String password;
     private Location lastLocation;
 
+    private LocationHelper locationHelper;
+
     @Override
     public IBinder onBind(Intent intent) {
         return binder == null ? binder = new Binder() : binder;
@@ -84,6 +86,7 @@ public class SocketService extends Service implements WebSocketListener {
         App.component(this).inject(this);
         bus.register(this);
         gson = new Gson();
+        locationHelper = new LocationHelper(getApplicationContext());
     }
 
 
@@ -93,8 +96,8 @@ public class SocketService extends Service implements WebSocketListener {
         password = intent.getStringExtra("password");
         createSocketCall().enqueue(this);
 
-        startForeground(ONGOING_NOTIFICATION_ID, getNotification());
-        return START_REDELIVER_INTENT;
+        //startForeground(ONGOING_NOTIFICATION_ID, getNotification());
+        return START_NOT_STICKY;
     }
 
     public void sendLocation(Location location) {
@@ -104,7 +107,6 @@ public class SocketService extends Service implements WebSocketListener {
                 LocationRequest request = new LocationRequest(location.getLatitude(), location.getLongitude());
                 webSocket.sendMessage(RequestBody.create(WebSocket.TEXT, gson.toJson(request)));
                 Log.i(getClass().getName(), "send: " + location.getLongitude() + ", " + location.getLatitude());
-                bus.post(new LocationChangedEvent(location));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -134,7 +136,8 @@ public class SocketService extends Service implements WebSocketListener {
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
         this.webSocket = webSocket;
-        bus.post(new LoginEvent());
+        //bus.post(new LoginEvent());
+        locationHelper.checkLastLocation();
     }
 
     @Override
@@ -146,7 +149,9 @@ public class SocketService extends Service implements WebSocketListener {
         } else {
             handler.postDelayed(() -> createSocketCall().enqueue(SocketService.this), 1000);
             try {
-                Log.w(getClass().getName(), String.format("FAILURE RESPONSE:\n %s", response.body() != null ? response.body().string() : response.body()));
+                if(response != null) {
+                    Log.w(getClass().getName(), String.format("FAILURE RESPONSE:\n %s", response.body() != null ? response.body().string() : response.body()));
+                }
             } catch (IOException e1) {
                 Log.w("", "FAILURE WHEN GETTING RESPONSE BODY", e);
             }
